@@ -56,7 +56,7 @@ those objects together. Lets look at the following example
     {
       "field": "url",
       "operator": "=",
-      "value": "myautism.rocks"
+      "value": "rastahorn.com"
     }
   ]
 }
@@ -70,14 +70,14 @@ Valid options for the top-level `operator` field are either `AND`, or `OR`. Bool
 The `start` and `stop` fields are present to allow for time-range restrictions. Valid values are ISO formatted
 timestamps (UTC)
 
-### Context
+### Tag
 
-A `context` is a parent container that adds a bunch of supplemental information to one or more `searches`.
+A `tag` is a parent container that adds a bunch of supplemental information to one or more `searches`.
 
 ```json
 {
   "name": "Docs Example",
-  "description": "A quick example of what a complete Context structure would look like. This context has two searches. Each searchs' results can be described by the metadata that this context provides.",
+  "description": "A quick example of what a complete Tag structure would look like. This tag has two searches. Each searches' results can be described by the metadata that this context provides.",
   "type": "Group",
   "groups": [
     "group 1",
@@ -87,7 +87,7 @@ A `context` is a parent container that adds a bunch of supplemental information 
     {
       "name": "A Quick Google Search",
       "link": "https://www.google.com/search?q=lorem+ipsum",
-      "description": "A google search for Lorum Ipsum",
+      "description": "A google search for Lorem Ipsum",
       "source": "Google"
     }
   ],
@@ -105,7 +105,7 @@ A `context` is a parent container that adds a bunch of supplemental information 
         {
           "field": "url",
           "operator": "=",
-          "value": "myautism.rocks"
+          "value": "rastahorn.com"
         }
       ]
     },
@@ -127,11 +127,12 @@ A `context` is a parent container that adds a bunch of supplemental information 
 
 #### Type
 
-One of the MITRE ATT&CK Cyber Threat Intel components - `Group`, `Software`, or `Campaign`
+One of the MITRE ATT&CK Cyber Threat Intel components - `Group`, `Software`, or `Campaign` - or whatever other
+classifiers you deem necessary!
 
 #### Groups
 
-An array of arbitrary strings to help _group_ multiple `Contexts` together. This is not an all match, a given context
+An array of arbitrary strings to help _group_ multiple `Tags` together. This is not an all match, a given tag
 can belong to more than one group
 
 ## Architecture
@@ -144,7 +145,7 @@ out [this guide](https://github.com/flavienbwk/opensearch-docker-compose/blob/ma
 
 ### API Request Flow
 
-All API requests are audited, and any modification to a given context is preserved in a historical record. The below
+All API requests are audited, and any modification to a given tag is preserved in a historical record. The below
 flow chart describes where data is written to for a given request type
 
 ```mermaid
@@ -166,8 +167,8 @@ TODO: need to document how to spin this up as the project moves along
 
 ## Future Ideas
 
-- Work in harmony with an Async data backend to perpetually apply contexts to a stream of data / on a recurring basis
-- Add additional fields to support workflows (eg when working with others, dont clobber others' work, state tracking,
+- Work in harmony with an Async data backend to perpetually apply tags to a stream of data / on a recurring basis
+- Add additional fields to support workflows (eg when working with others, don't clobber others' work, state tracking,
   etc)
 - Add field to handle visibilities (TLP levels)
-- Add ability to add links to other contexts (things contexts that are related to other contexts)
+- Add ability to add links to other tags (think tags that are related to other tags)
