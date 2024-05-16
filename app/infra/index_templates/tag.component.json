@@ -1,0 +1,112 @@
+{
+  "_meta": {
+    "name": "tag-component-template",
+    "description": "This is the base meta object that we inherit from in other places"
+  },
+  "template": {
+    "settings": {
+      "index.number_of_shards": "1",
+      "index.number_of_replicas": "2"
+    },
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "created": {
+          "format": "date_hour_minute_second_fraction",
+          "type": "date"
+        },
+        "author": {
+          "type": "keyword"
+        },
+        "updated": {
+          "format": "date_hour_minute_second_fraction",
+          "type": "date"
+        },
+        "editor": {
+          "type": "keyword"
+        },
+        "deleted": {
+          "format": "date_hour_minute_second_fraction",
+          "type": "date"
+        },
+        "name": {
+          "type": "keyword"
+        },
+        "description": {
+          "type": "text"
+        },
+        "type": {
+          "type": "keyword"
+        },
+        "groups": {
+          "type": "keyword"
+        },
+        "visibility": {
+          "type": "keyword"
+        },
+        "related": {
+          "type": "keyword"
+        },
+        "state": {
+          "type": "keyword"
+        },
+        "references": {
+          "type": "nested",
+          "properties": {
+            "name": {
+              "type": "keyword"
+            },
+            "link": {
+              "type": "text"
+            },
+            "description": {
+              "type": "text"
+            },
+            "source": {
+              "type": "keyword"
+            },
+            "id": {
+              "type": "keyword"
+            }
+          }
+        },
+        "patterns": {
+          "type": "nested",
+          "properties": {
+            "stop": {
+              "format": "date_hour_minute_second_fraction",
+              "type": "date"
+            },
+            "clauses": {
+              "type": "nested",
+              "properties": {
+                "field": {
+                  "type": "keyword"
+                },
+                "value": {
+                  "type": "text"
+                },
+                "operator": {
+                  "type": "keyword"
+                },
+                "id": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "start": {
+              "format": "date_hour_minute_second_fraction",
+              "type": "date"
+            },
+            "operator": {
+              "type": "keyword"
+            },
+            "id": {
+              "type": "keyword"
+            }
+          }
+        }
+      }
+    }
+  }
+}

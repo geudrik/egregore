@@ -1,0 +1,33 @@
+{
+  "_meta": {
+    "name": "tags-history",
+    "description": "This index is unique by TagID and will ALWAYS be the most recent version of a tag, regardless of state"
+  },
+  "composed_of": [
+    "tag-component-template"
+  ],
+  "index_patterns": [
+    "tags-history-*"
+  ],
+  "template": {
+    "settings": {
+      "index.number_of_shards": "1",
+      "index.number_of_replicas": "2"
+    },
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "version": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "keyword"
+        }
+      }
+    },
+    "aliases": {
+      "tags-history": {}
+    }
+  },
+  "priority": "0"
+}

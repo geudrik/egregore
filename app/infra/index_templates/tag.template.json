@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "name": "tags-latest",
+    "description": "This index is unique by TagID and will always be the most recent version of a tag"
+  },
+  "composed_of": [
+    "tag-component-template"
+  ],
+  "index_patterns": [
+    "tags-latest-*"
+  ],
+  "template": {
+    "settings": {
+      "index.number_of_shards": "1",
+      "index.number_of_replicas": "2"
+    },
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {}
+    },
+    "aliases": {
+      "tags-latest": {}
+    }
+  },
+  "priority": "0"
+}

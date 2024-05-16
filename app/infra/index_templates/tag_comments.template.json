@@ -1,0 +1,54 @@
+{
+  "_meta": {
+    "description": "Each comment has a 'relationship' to both a Tag, and a version",
+    "name": "tags-comments"
+  },
+  "index_patterns": [
+    "tags-comments-*"
+  ],
+  "template": {
+    "settings": {
+      "index.number_of_shards": "1",
+      "index.number_of_replicas": "2"
+    },
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "tag_id": {
+          "type": "keyword"
+        },
+        "tag_version": {
+          "type": "integer"
+        },
+        "deleted": {
+          "format": "date_hour_minute_second_fraction",
+          "type": "date"
+        },
+        "author": {
+          "type": "keyword"
+        },
+        "comment": {
+          "type": "text"
+        },
+        "type": {
+          "type": "keyword"
+        },
+        "created": {
+          "format": "date_hour_minute_second_fraction",
+          "type": "date"
+        },
+        "updated": {
+          "format": "date_hour_minute_second_fraction",
+          "type": "date"
+        },
+        "editor": {
+          "type": "keyword"
+        }
+      }
+    },
+    "aliases": {
+      "tags-comments": {}
+    }
+  },
+  "priority": "0"
+}
