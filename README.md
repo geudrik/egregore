@@ -14,10 +14,10 @@ Well, this is the (very rough) product of that ballmers-peak inspired headache w
 
 To get an idea of what this catalog does, lets start with a few terms
 
-### Query
+### Clause
 
-A `query` is the most basic conceptual component, describing a very simple search. Take `url=luxuriousneckbeards.com` as
-an example. This string can be broken apart into an object, and would be stored as a structure that
+A `clause` is the most basic conceptual component, describing a very simple search. Take `url=luxuriousneckbeards.com`
+as an example. This string can be broken apart into an object, and would be stored as a structure that
 resembles the following
 
 ```json
@@ -28,26 +28,26 @@ resembles the following
 }
 ```
 
-Queries like this represent a single ~thing that you may want to search for. These are arbitrary by design, but should
+This represents a single ~thing that you may want to search for. These are arbitrary by design, but should
 follow this format - the idea is that you should modify this system to accommodate your use case. You likely should put
 guardrails around what fields are allowed, and probably what operators (and value datatypes) are allowed for any given
 field.
 
-### Search
+### Pattern
 
-The next higher-order piece is a `search`. A `search` represents what you might actually _search_ for - any one ~thing
-that would get sent to the data backend for execution. A `search` is more complex than a single `query` and is more
-representative of what a human would want to use to actually look for something in the data backend
+The next higher-order piece is a `pattern`. A `pattern` represents what you might actually _search_ for - any one ~thing
+that would get sent to the data backend for execution. A `pattern` is more slightly complex than a single `query` and is
+more representative of what a human would want to use to actually look for something in the data backend
 
-Searches are comprised of one or more `query` objects, and includes some additional information about how to stitch
-those objects together. Lets look at the following example
+`Patterns` are comprised of one or more `clause` objects, and include some additional information about how to stitch
+those objects together. Let's look at the following example
 
 ```json
 {
   "start": null,
   "stop": null,
   "operator": "AND",
-  "queries": [
+  "clauses": [
     {
       "field": "url",
       "operator": "=",
@@ -62,17 +62,17 @@ those objects together. Lets look at the following example
 }
 ```
 
-This `search` outlines that, when executed by the data backend, results should be returned if they match _both_ `query`
-objects (due to the `AND` in the top-level `"operator"` field)
+This `pattern` outlines that, when executed by the data backend, results should be returned if they match
+_both_ `clause` objects (due to the `AND` in the top-level `"operator"` field)
 
 Valid options for the top-level `operator` field are either `AND`, or `OR`. Boolean logic.
 
 The `start` and `stop` fields are present to allow for time-range restrictions. Valid values are ISO formatted
-timestamps (UTC)
+timestamps (UTC), and are _optional_.
 
 ### Tag
 
-A `tag` is a parent container that adds a bunch of supplemental information to one or more `searches`.
+A `tag` is a parent container that adds a bunch of supplemental information to one or more `pattern` objects.
 
 ```json
 {
@@ -91,12 +91,12 @@ A `tag` is a parent container that adds a bunch of supplemental information to o
       "source": "Google"
     }
   ],
-  "searches": [
+  "patterns": [
     {
       "start": null,
       "stop": null,
       "operator": "AND",
-      "queries": [
+      "clauses": [
         {
           "field": "url",
           "operator": "=",
@@ -113,7 +113,7 @@ A `tag` is a parent container that adds a bunch of supplemental information to o
       "start": null,
       "stop": null,
       "operator": "OR",
-      "queries": [
+      "clauses": [
         {
           "field": "url",
           "operator": "=",
