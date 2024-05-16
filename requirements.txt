@@ -1,0 +1,5 @@
+fastapi
+pydantic
+opensearch-py[async]
+uvicorn[standard]
+loguru
