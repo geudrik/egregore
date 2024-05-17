@@ -46,7 +46,7 @@ async def create_a_new_tag(
     new_tag: Create,
     tag_service: TagService = Depends(get_tag_service),
 ):
-    ret = await tag_service.create(new_tag.model_dump(), username="demouser")
+    ret = await tag_service.create(new_tag.model_dump())
     return Tag(**ret["_source"], sequence=DocumentSequence(seq_no=ret["_seq_no"], primary_term=ret["_primary_term"]))
 
 

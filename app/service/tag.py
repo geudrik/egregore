@@ -17,11 +17,11 @@ class TagService(BaseService):
         self.history_service = history_service
         self.audit_service = audit_service
 
-    async def create(self, tag_data: dict, username: str) -> dict:
+    async def create(self, tag_data: dict) -> dict:
         new_id = uuid.uuid4()
         now = datetime.utcnow()
-        tag_data["author"] = username
-        tag_data["editor"] = username
+        tag_data["author"] = self.user.username
+        tag_data["editor"] = self.user.username
         tag_data["created"] = now
         tag_data["updated"] = now
         logger.info(f"Creating new Tag [{tag_data['name']}]", tag_id=new_id)
