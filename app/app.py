@@ -1,6 +1,11 @@
 from fastapi import FastAPI
 
+from app.api.middlewares.authentication import attach_user_authentication
 from app.api.middlewares.request_logging import attach_request_logging
+from app.api.routes.audit import audit_router
+from app.api.routes.comments import comment_router
+from app.api.routes.metrics import metrics_router
+from app.api.routes.tag_history import tag_history_router
 from app.api.routes.tags import tags_router
 from app.env import CYCLE_INDEX_TEMPLATES
 from app.logger import logger
@@ -27,6 +32,10 @@ tags_metadata = [
         "name": "Paginated",
         "description": "These endpoints are paginated. See the pagination model for details on response type",
     },
+    {
+        "name": "Metrics",
+        "description": "Methods to view statistics and metrics around what's what in the tagging system",
+    },
 ]
 
 description = """
@@ -39,12 +48,11 @@ auditability, and the ability to diff changes between version 3 and 11!
 
 ### Important Terms
 
-- `Tag` : A collection of metadata that adds context to the searchers (known as 'searches') bucketed underneath. A 
-Tag must contain at least one Search
-- `Search` : A set of one or more Queries that comprise a complete ~thing to search for. A `Search` must contain at 
-least one Query, and also contains additional metadata providing it an optional bounds, and either an AND or OR logic
-that applies to all Queries that are a part of the Search.
-- `Query` : A single item lookup - the most basic of "searches", but lacks bounding
+- `Tag` : A collection of metadata that adds context to collections of patterns. A Tag must contain at least one Pattern
+- `Pattern` : A set of one or more Clauses that comprise a complete ~thing to search for. A pattern must contain at 
+least one clause. It also contains additional metadata, providing an optional bounds, and either AND or OR logic
+that applies to all clauses that are a part of the Search.
+- `Clause` : A single item lookup - the most basic of "searches", but lacks bounding and boolean logic (see: patterns)
 
 Check out the models below to get a better understanding of what the shapes of these objects take.
 
@@ -71,17 +79,24 @@ app_args = {
 }
 
 if CYCLE_INDEX_TEMPLATES:
-    from app.development import lifecycle_manager
+    from app.development import lifecycle_manager  # noqa
 
     logger.info("Index cycling is ENABLED")
     app_args["lifespan"] = lifecycle_manager
 
 
 app = FastAPI(**app_args)
+
+logger.info("Attaching middlewares to app")
 attach_request_logging(app)
+attach_user_authentication(app)
 
 routers = [
     tags_router,
+    tag_history_router,
+    audit_router,
+    comment_router,
+    metrics_router,
 ]
 for router in routers:
     logger.info(f"Loading router for {router.prefix}")
