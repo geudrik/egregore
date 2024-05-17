@@ -4,13 +4,14 @@ from uuid import uuid4
 from fastapi import FastAPI, Request, Response
 from starlette.responses import JSONResponse
 
+from app.lib.exceptions import APIException, ServerError
 from app.logger import get_logger
 
 logger = get_logger()
 
 
 def attach_request_logging(app: FastAPI):
-    logger.debug("Attaching request logging to root app")
+    logger.debug("Attaching request logging middleware to app")
 
     @app.middleware("http")
     async def log_requests(request: Request, call_next) -> Response:
@@ -21,8 +22,33 @@ def attach_request_logging(app: FastAPI):
                 response = await call_next(request)
 
             except Exception as e:
-                logger.exception(f"Request failed: {e}")
-                response = JSONResponse(content={"success": False}, status_code=500)
+
+                response = {
+                    "requestID": request_id,
+                    "success": False,
+                    "details": {
+                        "statusCode": 500,
+                        "errorCode": 10000,
+                        "errorMessage": "Internal Server Error",
+                        "errorDetails": "",
+                    },
+                }
+
+                match e:
+
+                    case APIException():
+                        if isinstance(e, ServerError):
+                            logger.exception("API Server Error Thrown")
+
+                        response["details"]["statusCode"] = e.status_code
+                        response["details"]["errorCode"] = e.error_code
+                        response["details"]["errorMessage"] = e.error_message
+                        response["details"]["errorDetails"] = e.exception_message
+
+                    case Exception():
+                        logger.exception(f"Request failed due to unhandled exception: {e}")
+
+                response = JSONResponse(content=response, status_code=response["details"]["statusCode"])
 
             finally:
                 process_time = (time.time() - start_time) * 1000
