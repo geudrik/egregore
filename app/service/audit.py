@@ -36,5 +36,5 @@ class AuditService(BaseService):
             "tag_id": tag_id,
             "version": version,
         }
-        logger.info("Adding new Audit entry", **body)
+        logger.debug("Adding new Audit entry", **body)
         await self._index(body=body)

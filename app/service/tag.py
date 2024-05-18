@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 
 from app.logger import logger
+from app.models.sequence import DocumentSequence
 from app.service.audit import AuditService
 from app.service.base import BaseService
 from app.service.tag_history import TagHistoryService
@@ -28,11 +29,7 @@ class TagService(BaseService):
         new_tag = await self._index(tag_data, doc_id=new_id)
 
         # Add this newly created tag to our history
-        history_body: dict = new_tag["_source"]
-        history_body["version"] = new_tag["_version"]
-        history_body["id"] = new_tag["_id"]
-        logger.info(f"Adding newly created tag to history", tag_id=new_id)
-        await self.history_service.add(history_body)
+        await self.history_service.add(new_tag)
 
         # Make an audit log
         await self.audit_service.add(
@@ -44,3 +41,21 @@ class TagService(BaseService):
         )
 
         return new_tag
+
+    async def delete(self, tag_id: uuid.UUID, sequence: DocumentSequence) -> dict:
+        logger.info(f"Deleting Tag [{tag_id}]")
+        tag = await self.get(tag_id, sequence=sequence)
+        now = datetime.utcnow()
+        tag["_source"]["deleted"] = now
+        tag["_source"]["updated"] = now
+
+        deleted = await self._index(doc_id=tag_id, body=tag["_source"], sequence=sequence)
+        await self.history_service.add(deleted)
+
+        await self.audit_service.add(
+            "delete",
+            "tag",
+            self.user.username,
+            f"Tag [{tag['_source']['name']}] deleted",
+            tag_id=tag["_id"],
+        )

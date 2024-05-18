@@ -39,6 +39,10 @@ class BadRequest(APIException):
     error_code = 10002
 
 
+class ClientError(BadRequest):
+    pass
+
+
 class Unauthorized(APIException):
     status_code = 401
     error_code = 10011

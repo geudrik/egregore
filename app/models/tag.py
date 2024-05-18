@@ -78,7 +78,8 @@ class Update(Create):
     pass
 
 
-class Tag(Create):
+class TagBase(Create):
+    id: UUID
     created: datetime
     author: str
     updated: datetime
@@ -88,9 +89,12 @@ class Tag(Create):
     state: Optional[str] = ""
     references: Optional[List[Reference]] = []
     patterns: Optional[List[Pattern]] = []
+    version: int
+
+
+class Tag(TagBase):
     sequence: DocumentSequence
 
 
-class TagHistory(Tag):
-    id: UUID
-    version: int
+class TagHistory(TagBase):
+    pass

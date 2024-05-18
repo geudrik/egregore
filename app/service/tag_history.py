@@ -6,6 +6,13 @@ class TagHistoryService(BaseService):
 
     _index_name = "tags-history"
 
-    async def add(self, body: dict) -> None:
-        logger.info("Adding new Tag history entry", tag_id=body["id"], tag_version=body["version"])
-        await self._index(body=body)
+    async def add(self, doc: dict) -> None:
+        """Add the supplied doc to the history index
+        :arg body The whole doc body returned from an index operation (including the _ fields)
+        """
+        history_body: dict = doc["_source"]
+        history_body["version"] = doc["_version"]
+        history_body["id"] = doc["_id"]
+
+        logger.debug("Adding changes to Tag to history", tag_id=history_body["id"], tag_version=history_body["version"])
+        await self._index(body=history_body)

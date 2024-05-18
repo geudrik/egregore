@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
 from typing import List
 
@@ -50,7 +48,7 @@ class BaseService(AbstractBaseService):
         Note that if we migrate to chronological index names, we will need to update routes on CRUD calls to get the
         'created' value for a given tag. Alternatively, this could just be blindly added into the sequence
         """
-        return f"{OPENSEARCH_INDEX_PREFIX}tags-latest"
+        return f"{OPENSEARCH_INDEX_PREFIX}{self._index_name}"
 
     @staticmethod
     def generate_listing_query(
@@ -111,16 +109,20 @@ class BaseService(AbstractBaseService):
         )
         return result.get("count")
 
-    async def get(self, id, sequence: str = None, fields: List[str] = None) -> dict:
-        """Get a single doc by ID
+    async def get(self, id, sequence: DocumentSequence = None, fields: List[str] = None) -> dict:
+        """Get a single doc by ID. If a sequence is supplied, it will be tested to ensure matches the fetched doc
         TODO: If we start using timestamped indexes for things, need to also pass the created date for this so we
-        can calculate the index we need to query"""
+            can calculate the index we need to query"""
+
         res = await self.client.get(
             index=self.index_name_read, id=id, _source_includes=fields if fields is not None else None
         )
 
-        if sequence is not None and f"{res['_seq_no']},{res['_primary_term']}" != sequence:
-            raise IntegrityError("Supplied sequence does not match latest version")
+        if sequence is not None and f"{res['_seq_no']},{res['_primary_term']}" != sequence.string:
+            raise IntegrityError(
+                "Supplied sequence does not match existing. Please fetch first, and use the returned sequence and make "
+                "the call again"
+            )
 
         return res
 
