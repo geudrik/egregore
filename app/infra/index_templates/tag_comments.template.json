@@ -4,7 +4,7 @@
     "name": "tags-comments"
   },
   "index_patterns": [
-    "tags-comments-*"
+    "tags-comments*"
   ],
   "template": {
     "settings": {

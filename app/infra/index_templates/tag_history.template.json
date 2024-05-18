@@ -7,7 +7,7 @@
     "tag-component-template"
   ],
   "index_patterns": [
-    "tags-history-*"
+    "tags-history*"
   ],
   "template": {
     "settings": {

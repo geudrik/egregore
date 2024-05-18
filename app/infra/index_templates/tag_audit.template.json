@@ -5,7 +5,7 @@
     "usage_note": "The goal of the audit record is to preserve actions that occur, but NOT the content of the action occurring (the history table will show that). In the event that there is information necessary to convey (but not via diff in History index), we can accommodate that too via the `message` field"
   },
   "index_patterns": [
-    "tags-audi-t*"
+    "tags-audit*"
   ],
   "template": {
     "settings": {
