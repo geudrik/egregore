@@ -99,8 +99,11 @@ class Manager:
         for template in reversed(self.templates):
             data = self._load_template_data(template)
             name = f"{OPENSEARCH_INDEX_PREFIX}{data['_meta']['name']}"
+
+            # Audit and Comment indexes aren't composed of the component template, so skip those
             if "audit" not in name and "comment" not in name:
                 data["composed_of"] = [f"{OPENSEARCH_INDEX_PREFIX}{data['composed_of'][0]}"]
-                data["index_patterns"] = [f"{OPENSEARCH_INDEX_PREFIX}{data['index_patterns'][0]}"]
+
+            data["index_patterns"] = [f"{OPENSEARCH_INDEX_PREFIX}{data['index_patterns'][0]}"]
             args = {"name": name, "body": data}
             await self._call_client(self.client.indices.put_index_template, args)

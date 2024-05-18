@@ -15,7 +15,7 @@
     "mappings": {
       "dynamic": "strict",
       "properties": {
-        "timestamp": {
+        "created": {
           "format": "date_hour_minute_second_fraction",
           "type": "date"
         },
@@ -28,7 +28,7 @@
         "subcomponent": {
           "type": "keyword"
         },
-        "id": {
+        "tag_id": {
           "type": "keyword"
         },
         "version": {

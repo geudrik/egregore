@@ -33,11 +33,7 @@ class TagService(BaseService):
 
         # Make an audit log
         await self.audit_service.add(
-            "create",
-            "tag",
-            self.user.username,
-            f"New tag [{tag_data['name']}] created",
-            tag_id=new_id,
+            "create", "tag", "Creating new Tag", user=self.user.username, tag_id=new_id, version=new_tag["_version"]
         )
 
         return new_tag
@@ -55,7 +51,8 @@ class TagService(BaseService):
         await self.audit_service.add(
             "delete",
             "tag",
-            self.user.username,
             f"Tag [{tag['_source']['name']}] deleted",
+            user=self.user.username,
             tag_id=tag["_id"],
+            version=deleted["_version"],
         )

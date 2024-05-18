@@ -2,6 +2,7 @@ from typing import Optional, Annotated, List
 
 from pydantic import BaseModel
 
+from app.models.audit import Audit
 from app.models.tag import Tag, TagHistory
 
 
@@ -11,7 +12,7 @@ class FilteringArgs(BaseModel):
 
 class SortingArgs(BaseModel):
     sort_by: Optional[Annotated[str, "The name of the field to sort by, defaulting to created timestamp"]] = "created"
-    sort_order: Optional[Annotated[str, "The direction to sort by, defaulting to ascending"]] = "asc"
+    sort_order: Optional[Annotated[str, "The direction to sort by, defaulting to descending"]] = "desc"
 
 
 class PaginationArgs(BaseModel):
@@ -43,9 +44,9 @@ class PaginatedTagHistoryList(PaginatedModelBase):
     items: List[TagHistory] = []
 
 
-# class PaginatedAuditList(PaginatedModelBase):
-#     items: List[] = []
-#
-#
+class PaginatedAuditList(PaginatedModelBase):
+    items: List[Audit] = []
+
+
 # class PaginatedCommentList(PaginatedModelBase):
 #     items: List[] = []

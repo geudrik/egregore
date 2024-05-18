@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from app.logger import logger
@@ -28,6 +29,7 @@ class AuditService(BaseService):
         :arg version: Optional, the version of the Tag if available
         """
         body = {
+            "created": datetime.utcnow(),
             "action": action,
             "component": component,
             "user": user,
