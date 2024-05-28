@@ -10,6 +10,25 @@ Well, this is the (very rough) product of that ballmers-peak inspired headache w
 
 ### Enter Egregore, a catalog for the classification and organization of sets of searches
 
+## Quickstart
+
+You can literally just ensure all the deps are installed and start the server, then hit `/docs` to get to the
+interactive docs. Of course, without a backend, none of the routes will work, but you can at least see the API "up"
+
+### Getting Going
+
+If you're loading this up in JetBrains, point your debug config at a file you create that's a clone
+of [the example `.env` file](.env) with the
+info filled out appropriately. Make sure you familiarize yourself with the options.
+
+If you'd like to set up a local OpenSearch Docker Stack to test and play with this API, check
+out [this guide](https://github.com/flavienbwk/opensearch-docker-compose/blob/main/README.md) to getting spun up. Takes
+less than 5 minutes
+
+### Images
+
+This will eventually have a Dockerfile that works. IDK, maybe it works now, but it hasn't been a priority yet.
+
 ## Terms
 
 To get an idea of what this catalog does, lets start with a few terms
@@ -139,9 +158,6 @@ can belong to more than one group
 
 This project is written in Python using FastAPI and OpenSearch. I tried playing with Quart since I really love flask,
 but it's pretty far behind FastAPI in terms of documentation
-
-If you'd like to set up a local OpenSearch Docker Stack to test and play with this API, check
-out [this guide](https://github.com/flavienbwk/opensearch-docker-compose/blob/main/README.md) to getting spun up
 
 ### API Request Flow
 
