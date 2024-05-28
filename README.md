@@ -3,6 +3,7 @@
 I'm often rooting around in various datasets - darkweb dumps, netflow data, weather info, etc. And every time
 find myself thinking something along the lines of
 
+> [!TIP]
 > Damn, it would be awesome if I could start to catalog these searches and represent them all in a single format without
 > losing fidelity
 
@@ -13,17 +14,26 @@ Well, this is the (very rough) product of that ballmers-peak inspired headache w
 ## Quickstart
 
 You can literally just ensure all the deps are installed and start the server, then hit `/docs` to get to the
-interactive docs. Of course, without a backend, none of the routes will work, but you can at least see the API "up"
+interactive docs. Of course, without a backend, none of the routes will work, but you can at least see the API "up" and
+peruse the docs
+
+1. Clone this repo
+2. CD into the directory
+3. `pip install -r requirements.txt`
+4. Run `python -m uvicorn app.app:app`
+5. Open a browser and load `http://localhost:8000/docs`
 
 ### Getting Going
 
-If you're loading this up in JetBrains, point your debug config at a file you create that's a clone
-of [the example `.env` file](.env) with the
-info filled out appropriately. Make sure you familiarize yourself with the options.
+If you're loading this up in JetBrains, do the following
+
+- Set the run config to be a `Module`, pointing to `app.main` and you should be good to go!
+- Point your `Paths to .env files` section at a file you create that's a clone of [the example `.env` file](.env) with
+  the info filled out appropriately. Make sure you familiarize yourself with the options.
 
 If you'd like to set up a local OpenSearch Docker Stack to test and play with this API, check
 out [this guide](https://github.com/flavienbwk/opensearch-docker-compose/blob/main/README.md) to getting spun up. Takes
-less than 5 minutes
+less than 5 minutes, then update the env vars accordingly.
 
 ### Images
 
