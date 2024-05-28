@@ -181,8 +181,8 @@ flowchart TD
 
     subgraph Data Flow to Indecies
         L -->|Append Action To| M(Audit Index)
-        B -->|Update| C[Contexts Index]
-        B -->|Append To| D[Contexts History Index]
+        B -->|Update| C[Tags Index]
+        B -->|Append To| D[Tags History Index]
         B -->|Append Action To| M
     end
 ```
