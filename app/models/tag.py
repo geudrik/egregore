@@ -30,6 +30,8 @@ class Reference(BaseModel):
     @computed_field(return_type=str)
     @property
     def id(self):
+        """The deterministic ID is computed as the sha1 of the URL. This is the only input for generation as everything
+        else is human editable"""
         return hashlib.sha1(self.link.encode()).hexdigest()
 
 
@@ -43,6 +45,7 @@ class PatternClause(BaseModel):
     @computed_field(return_type=str)
     @property
     def id(self):
+        """The deterministic ID is the sha1 of the field, operator, and value"""
         return hashlib.sha1(f"{self.field}{self.operator}{self.value}".encode()).hexdigest()
 
 
@@ -75,7 +78,13 @@ class Create(BaseModel):
 
 
 class Update(Create):
-    pass
+    """Same as the Create model, but all fields are optional"""
+
+    name: Optional[TagName] = ""
+    description: Optional[TagDescription] = ""
+    groups: Optional[List[TagGroup]] = []
+    type: Optional[TagTypes] = ""
+    visibility: Optional[TagVisibility] = ""
 
 
 class TagBase(Create):

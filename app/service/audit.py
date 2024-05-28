@@ -16,6 +16,7 @@ class AuditService(BaseService):
         message: str,
         user: str,
         subcomponent: str = None,
+        subcomponent_action: str = None,
         tag_id: UUID = None,
         version: int = None,
     ) -> None:
@@ -24,7 +25,8 @@ class AuditService(BaseService):
         :arg component: The component the action is being performed on (tag, tag history, audit, comment, etc)
         :arg user: The user that's performing this action
         :arg message: A message describing what's going on and/or why
-        :arg subcomponent: Optional, a secondary component that's having action taken against (eg:
+        :arg subcomponent: Optional, a secondary component that's having action taken against (eg: references, patterns)
+        :arg subcomponent_action: Optional, the action being taken against the subcomponent (eg: create, update, delete)
         :arg tag_id: Optional, the ID of a Tag if available
         :arg version: Optional, the version of the Tag if available
         """
@@ -35,6 +37,7 @@ class AuditService(BaseService):
             "user": user,
             "message": message,
             "subcomponent": subcomponent,
+            "subcomponent_action": subcomponent_action,
             "tag_id": tag_id,
             "version": version,
         }

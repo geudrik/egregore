@@ -10,6 +10,7 @@ class Audit(BaseModel):
     action: str
     component: str
     subcomponent: Optional[str]
+    subcomponent_action: Optional[str]
     tag_id: Optional[UUID]
     version: Optional[int]
     message: str

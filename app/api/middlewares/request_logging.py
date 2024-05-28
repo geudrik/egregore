@@ -65,6 +65,7 @@ def attach_request_logging(app: FastAPI):
                         ),
                         "code": response.status_code,
                         "duration": formatted_process_time,
+                        "username": None,
                     }
                 ).info(
                     f"{request.method} {request.url.path} -> [{response.status_code}] in {formatted_process_time}ms",

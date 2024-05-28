@@ -28,6 +28,9 @@
         "subcomponent": {
           "type": "keyword"
         },
+        "subcomponent_action": {
+          "type": "keyword"
+        },
         "tag_id": {
           "type": "keyword"
         },

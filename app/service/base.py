@@ -5,7 +5,7 @@ import opensearchpy
 from opensearchpy import AsyncOpenSearch
 
 from app.env import OPENSEARCH_INDEX_PREFIX
-from app.lib.exceptions import IntegrityError, ServerError
+from app.lib.exceptions import IntegrityError, ServerError, NotFound
 from app.models.pagination import PaginationArgs, FilteringArgs, SortingArgs
 from app.models.sequence import DocumentSequence
 
@@ -55,8 +55,7 @@ class BaseService(AbstractBaseService):
         pagination: PaginationArgs = PaginationArgs(),
         filtering: FilteringArgs = FilteringArgs(),
         sorting: SortingArgs = SortingArgs(),
-        filter_deleted: bool = True,
-        extra_filter: dict = None,
+        extra_filter: dict | None = None,
     ):
         """Generates the lucene query we can use for listed endpoints"""
         # Begin creating our Query
@@ -71,10 +70,6 @@ class BaseService(AbstractBaseService):
         # Add filtering args
         if filtering.q:
             body["query"]["bool"]["must"].append({"query_string": {"query": filtering.q}})
-
-        # Add the deleted exclusion
-        if filter_deleted:
-            body["query"]["bool"]["must"].append({"bool": {"must_not": {"exists": {"field": "deleted"}}}})
 
         # Allow for an optional additional MUST clause
         if extra_filter is not None:
@@ -99,24 +94,35 @@ class BaseService(AbstractBaseService):
 
         return this_doc
 
-    async def count(self, filter_deleted=True) -> int:
-        """Perform a count, optionally taking filter params."""
-        # If this gets passed to count, will ignore all docs that have their deleted field set
-        query = {"query": {"bool": {"must_not": {"exists": {"field": "deleted"}}}}}
+    async def count(self, query: dict = None) -> int:
+        """Perform a count, optionally taking filter params
+        :arg query The query used to perform the count of docs against. If unset, will count everything"""
         result = await self.client.count(
             index=self.index_name_read,
-            body=query if filter_deleted else None,
+            body=query if query else None,
         )
-        return result.get("count")
+        return result.get("count", 0)
 
-    async def get(self, id, sequence: DocumentSequence = None, fields: List[str] = None) -> dict:
+    async def get(
+        self, doc_id, sequence: DocumentSequence = None, fields: List[str] = None, allow_deleted: bool = False
+    ) -> dict:
         """Get a single doc by ID. If a sequence is supplied, it will be tested to ensure matches the fetched doc
         TODO: If we start using timestamped indexes for things, need to also pass the created date for this so we
             can calculate the index we need to query"""
 
-        res = await self.client.get(
-            index=self.index_name_read, id=id, _source_includes=fields if fields is not None else None
-        )
+        try:
+            res = await self.client.get(
+                index=self.index_name_read,
+                id=doc_id,
+                _source_includes=fields if fields is not None else None,
+            )
+
+            if res["_source"].get("deleted"):
+                if not allow_deleted:
+                    raise NotFound(f"No document found for {doc_id}")
+
+        except opensearchpy.exceptions.NotFoundError:
+            raise NotFound(f"No document found for {doc_id}")
 
         if sequence is not None and f"{res['_seq_no']},{res['_primary_term']}" != sequence.string:
             raise IntegrityError(
@@ -131,13 +137,11 @@ class BaseService(AbstractBaseService):
         pagination: PaginationArgs = PaginationArgs(),
         filtering: FilteringArgs = FilteringArgs(),
         sorting: SortingArgs = SortingArgs(),
-        filter_deleted: bool = True,
-        extra_filter: dict = None,
-    ) -> (int, int, int, List[dict]):
+        extra_filter: dict | None = None,
+    ) -> (int, int, List[dict]):
         """List all docs outlined by the query params passed in"""
 
-        total_count: int = await self.count(filter_deleted=filter_deleted)
-        body = self.generate_listing_query(pagination, filtering, sorting, filter_deleted, extra_filter)
+        body = self.generate_listing_query(pagination, filtering, sorting, extra_filter)
         try:
             result = await self.client.search(body=body, index=self.index_name_read, seq_no_primary_term=True)
 
@@ -149,4 +153,4 @@ class BaseService(AbstractBaseService):
             result_list.append(res)
 
         # If we're asking for a paginated result set, return our pagination model with all items
-        return total_count, pagination.limit, pagination.offset, result_list
+        return pagination.limit, pagination.offset, result_list

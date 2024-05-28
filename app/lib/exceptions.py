@@ -1,13 +1,12 @@
 ERROR_CODES = {
-    10000: "The server encountered an unexpected error. Your request was cancelled",
-    10001: "The request you made could not be fulfilled as the path wasn't found",
-    10002: "The request supplied was malformed in some way",
-    10003: "Unable to perform the request due to a conflict",
-    10004: "Unable to perform the request due to an integrity error",
-    10011: "Header parameter X-API-Key is missing from the headers of the request",
-    10012: "Supplied API is malformed",
-    10013: "You do not have permission to access the requested resource",
-    10014: "Invalid token",
+    "sploot": "The server encountered an unexpected error",
+    "goldfish": "The request you made could not be fulfilled as something wasn't found",
+    "shoebill": "The request supplied was malformed in some way",
+    "poodle moth": "Unable to perform the request due to a conflict",
+    "narwhal": "Unable to perform the request due to an integrity error",
+    "aye-aye": "Header parameter X-API-Key is missing from the headers of the request",
+    "markhor": "Supplied API Key is malformed",
+    "platypus": "You do not have permission to access the requested resource",
 }
 
 
@@ -17,7 +16,7 @@ class APIException(Exception):
     status_code = 500
 
     # The default error message code
-    error_code = 10000
+    error_code = "sploot"
 
     @property
     def error_message(self):
@@ -36,7 +35,7 @@ class ServerError(APIException):
 
 class BadRequest(APIException):
     status_code = 400
-    error_code = 10002
+    error_code = "shoebill"
 
 
 class ClientError(BadRequest):
@@ -45,29 +44,29 @@ class ClientError(BadRequest):
 
 class Unauthorized(APIException):
     status_code = 401
-    error_code = 10011
+    error_code = "aye-aye"
 
 
 class MalformedAPIKey(APIException):
     status_code = 401
-    error_code = 10012
+    error_code = "markhor"
 
 
 class Forbidden(APIException):
     status_code = 403
-    error_code = 10013
+    error_code = "platypus"
 
 
 class NotFound(APIException):
     status_code = 404
-    error_code = 10001
+    error_code = "goldfish"
 
 
 class Conflict(APIException):
     status_code = 409
-    error_code = 10003
+    error_code = "poodle moth"
 
 
 class IntegrityError(APIException):
     status_code = 409
-    error_code = 10004
+    error_code = "narwhal"
