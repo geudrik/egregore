@@ -19,9 +19,10 @@ peruse the docs
 
 1. Clone this repo
 2. CD into the directory
-3. `pip install -r requirements.txt`
-4. Run `python -m uvicorn app.app:app`
-5. Open a browser and load `http://localhost:8000/docs`
+3. Set up a pyenv like a sane person `pyenv local 3.12.3` (latest as of this edit, and it works)
+4. `pip install -r requirements.txt`
+5. Run `python -m uvicorn app.app:app`
+6. Open a browser and load `http://localhost:8000/docs`
 
 ### Getting Going
 
