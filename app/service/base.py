@@ -8,6 +8,7 @@ from app.env import OPENSEARCH_INDEX_PREFIX
 from app.lib.exceptions import IntegrityError, ServerError, NotFound
 from app.models.pagination import PaginationArgs, FilteringArgs, SortingArgs
 from app.models.sequence import DocumentSequence
+from app.service.decorators import audit
 
 
 class AbstractBaseService(ABC):
@@ -132,6 +133,7 @@ class BaseService(AbstractBaseService):
 
         return res
 
+    @audit
     async def list(
         self,
         pagination: PaginationArgs = PaginationArgs(),
@@ -152,5 +154,11 @@ class BaseService(AbstractBaseService):
         for res in result.get("hits", {}).get("hits", []):
             result_list.append(res)
 
+        audit_args = {
+            "action": "list",
+            "component": "tag",
+            "message": f"Listing all tags | {filtering.model_dump()}",
+        }
+
         # If we're asking for a paginated result set, return our pagination model with all items
-        return pagination.limit, pagination.offset, result_list
+        return audit_args, (pagination.limit, pagination.offset, result_list)

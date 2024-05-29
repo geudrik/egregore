@@ -8,32 +8,8 @@ from app.models.pagination import SortingArgs, FilteringArgs, PaginationArgs
 from app.models.sequence import DocumentSequence
 from app.service.audit import AuditService
 from app.service.base import BaseService
+from app.service.decorators import audit, add_to_history
 from app.service.tag_history import TagHistoryService
-
-
-def add_to_history(wrapped):
-    """Decorator we use to decorate our Tag methods. So long as a tag method returns the complete JSON response from
-    ES for any one given tag (the successfully updated object), this decorator will then use it and add it to the
-    history Index"""
-
-    async def inner(self, *args, **kwargs) -> tuple:
-        audit_args, ret = await wrapped(self, *args, **kwargs)
-        await self.history_service.add(ret)
-        return audit_args, ret
-
-    return inner
-
-
-def audit(wrapped):
-    """Decorator to audit all service calls. This will add an audit log entry for every call made to the service"""
-
-    async def inner(self, *args, **kwargs) -> dict:
-        audit_args, ret = await wrapped(self, *args, **kwargs)
-        audit_args["user"] = self.user.username
-        await self.audit_service.add(**audit_args)
-        return ret
-
-    return inner
 
 
 class TagService(BaseService):
@@ -134,7 +110,7 @@ class TagService(BaseService):
 
     @audit
     @add_to_history
-    async def update(self, tag_id: UUID, sequence: DocumentSequence, payload: dict) -> dict:
+    async def update(self, tag_id: UUID, sequence: DocumentSequence, payload: dict) -> (dict, dict):
         logger.info(f"Updating Tag base info", tag_id=tag_id)
         tag = await self.get(tag_id, sequence=sequence)
         updated_tag = tag["_source"] | payload
@@ -142,20 +118,19 @@ class TagService(BaseService):
 
         ret = await self._index(doc_id=tag_id, body=updated_tag, sequence=sequence)
 
-        await self.audit_service.add(
-            "update",
-            "tag",
-            f"Tag [{tag_id}] had {list(payload.keys())} modified by [{self.user.username}]",
-            user=self.user.username,
-            tag_id=tag_id,
-            version=ret["_version"],
-        )
+        audit_args = {
+            "action": "update",
+            "component": "tag",
+            "message": f"Tag [{tag_id}] had {list(payload.keys())} modified by [{self.user.username}]",
+            "tag_id": tag_id,
+            "version": ret["_version"],
+        }
 
-        return ret
+        return audit_args, ret
 
     @audit
     @add_to_history
-    async def delete(self, tag_id: UUID, sequence: DocumentSequence) -> dict:
+    async def delete(self, tag_id: UUID, sequence: DocumentSequence) -> (dict, dict):
         logger.info(f"Deleting Tag", tag_id=tag_id)
         tag = await self.get(tag_id, sequence=sequence)
         tag = tag["_source"]
@@ -166,16 +141,15 @@ class TagService(BaseService):
 
         deleted = await self._index(doc_id=tag_id, body=tag, sequence=sequence)
 
-        await self.audit_service.add(
-            "delete",
-            "tag",
-            f"Tag [{tag['name']}] deleted",
-            user=self.user.username,
-            tag_id=tag_id,
-            version=deleted["_version"],
-        )
+        audit_args = {
+            "action": "delete",
+            "component": "tag",
+            "message": f"Tag [{tag['name']}] deleted",
+            "tag_id": tag_id,
+            "version": deleted["_version"],
+        }
 
-        return deleted
+        return audit_args, deleted
 
     @audit
     @add_to_history
