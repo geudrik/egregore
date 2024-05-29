@@ -30,6 +30,12 @@ class TagService(BaseService):
         payload["state"] = None
         return payload
 
+    async def _get_tag_for_editing(self, tag_id: UUID, sequence: DocumentSequence) -> dict:
+        """Get a tag for editing, updating all of the metadata fields along the way"""
+        tag = await self.get(tag_id, sequence=sequence)
+        tag["_source"] = self._update_meta(tag["_source"])
+        return tag
+
     async def count(self, include_deleted: bool = False) -> int:
         """Counts all tags, by default excluding those that are deleted
         :arg include_deleted if True, include deleted tags in the count"""
@@ -83,7 +89,7 @@ class TagService(BaseService):
     @add_to_history
     async def create_reference(self, tag_id: UUID, sequence: DocumentSequence, payload: dict) -> tuple:
         """Create a new reference for the supplied tag"""
-        existing = await self.get(tag_id, sequence)
+        existing = await self._get_tag_for_editing(tag_id, sequence)
         existing = existing["_source"]
 
         logger.info("Creating new reference for Tag", tag_id=tag_id)
@@ -112,10 +118,9 @@ class TagService(BaseService):
     @add_to_history
     async def update(self, tag_id: UUID, sequence: DocumentSequence, payload: dict) -> (dict, dict):
         logger.info(f"Updating Tag base info", tag_id=tag_id)
-        tag = await self.get(tag_id, sequence=sequence)
-        updated_tag = tag["_source"] | payload
-        updated_tag = self._update_meta(updated_tag)
+        tag = await self._get_tag_for_editing(tag_id, sequence=sequence)
 
+        updated_tag = tag["_source"] | payload
         ret = await self._index(doc_id=tag_id, body=updated_tag, sequence=sequence)
 
         audit_args = {
@@ -132,9 +137,8 @@ class TagService(BaseService):
     @add_to_history
     async def delete(self, tag_id: UUID, sequence: DocumentSequence) -> (dict, dict):
         logger.info(f"Deleting Tag", tag_id=tag_id)
-        tag = await self.get(tag_id, sequence=sequence)
+        tag = await self._get_tag_for_editing(tag_id, sequence=sequence)
         tag = tag["_source"]
-        tag = self._update_meta(tag)
 
         # Set our deleted field to be the same as the update timestamp to signify this tag has been deleted
         tag["deleted"] = tag["updated"]
@@ -154,7 +158,7 @@ class TagService(BaseService):
     @audit
     @add_to_history
     async def delete_reference(self, tag_id: UUID, sequence: DocumentSequence, reference_id: str) -> tuple:
-        tag = await self.get(tag_id, sequence=sequence)
+        tag = await self._get_tag_for_editing(tag_id, sequence=sequence)
         tag = tag["_source"]
 
         if not tag["references"]:
