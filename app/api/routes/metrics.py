@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 
-from app.service.factory import get_tag_service
+from app.service.audit import AuditService
+from app.service.factory import get_tag_service, get_audit_service
 from app.service.tag import TagService
 
 metrics_router = APIRouter(prefix="/metrics", tags=["Metrics"])
@@ -30,8 +31,8 @@ async def get_tag_metrics(tag_service: TagService = Depends(get_tag_service)):
 
 
 @metrics_router.get("/audit")
-async def get_audit_metrics():
+async def get_audit_metrics(audit_service: AuditService = Depends(get_audit_service)):
     """Returns a dict of metrics around number of actions occurring within the system, what kinds of things are
     happening, etc
     """
-    ...
+    return await audit_service.metrics()
