@@ -10,7 +10,7 @@ class TagHistoryService(BaseService):
         """Add the supplied doc to the history index
         :arg body The whole doc body returned from an index operation (including the _ fields)
         """
-        history_body: dict = doc["_source"]
+        history_body = doc["_source"].copy()  # Need to copy this as this is a mutable object
         history_body["version"] = doc["_version"]
         history_body["id"] = doc["_id"]
 
