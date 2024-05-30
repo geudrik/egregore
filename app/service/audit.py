@@ -9,6 +9,13 @@ class AuditService(BaseService):
 
     _index_name = "tags-audit"
 
+    def __init__(self, user, client):
+        super().__init__(client)
+        self.user = user
+
+        # This is a work-around, since audit log creation is a decorator
+        self.audit_service = self
+
     async def add(
         self,
         action: str,
