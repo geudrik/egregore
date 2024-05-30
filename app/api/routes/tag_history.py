@@ -19,8 +19,8 @@ async def list_all_historical_changes_for_a_tag(
     sorting=Depends(SortingArgs),
 ) -> PaginatedTagHistoryList:
     query = {"term": {"id": str(tag_id)}}
-    count, limit, offset, res = await history_service.list(
-        pagination, filtering, sorting, filter_deleted=False, extra_filter=query
+    res = await history_service.list(
+        pagination, filtering, sorting, extra_filter=query
     )
-    ret = [TagHistory(**i["_source"]) for i in res]
-    return PaginatedTagHistoryList(limit=limit, offset=offset, total=count, items=ret)
+    ret = [TagHistory(**i["_source"]) for i in res.data]
+    return PaginatedTagHistoryList(limit=res.limit, offset=res.offset, total=res.total, items=ret)

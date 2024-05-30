@@ -19,10 +19,10 @@ async def list_the_audit_record_for_the_supplied_tag(
     sorting=Depends(SortingArgs),
 ) -> PaginatedAuditList:
     query = {"term": {"tag_id": str(tag_id)}}
-    limit, offset, res = await audit_service.list(pagination, filtering, sorting, extra_filter=query)
+    res = await audit_service.list(pagination, filtering, sorting, extra_filter=query)
     count = await audit_service.count({"query": {"bool": {"filter": query}}})
-    ret = [Audit(**i["_source"]) for i in res]
-    return PaginatedAuditList(limit=limit, offset=offset, total=count, items=ret)
+    ret = [Audit(**i["_source"]) for i in res.data]
+    return PaginatedAuditList(limit=res.limit, offset=res.offset, total=res.total, items=ret)
 
 
 @audit_router.get("/users/{username}", tags=["Paginated"])
@@ -34,7 +34,7 @@ async def list_the_audit_record_for_the_supplied_user(
     sorting=Depends(SortingArgs),
 ) -> PaginatedAuditList:
     query = {"term": {"user": username}}
-    limit, offset, res = await audit_service.list(pagination, filtering, sorting, extra_filter=query)
+    res = await audit_service.list(pagination, filtering, sorting, extra_filter=query)
     count = await audit_service.count({"query": {"bool": {"filter": query}}})
-    ret = [Audit(**i["_source"]) for i in res]
-    return PaginatedAuditList(limit=limit, offset=offset, total=count, items=ret)
+    ret = [Audit(**i["_source"]) for i in res.data]
+    return PaginatedAuditList(limit=res.limit, offset=res.offset, total=res.total, items=ret)
