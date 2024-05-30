@@ -28,7 +28,7 @@ def attach_request_logging(app: FastAPI):
                     "success": False,
                     "details": {
                         "statusCode": 500,
-                        "errorCode": 10000,
+                        "errorCode": ServerError.error_code,
                         "errorMessage": "Internal Server Error",
                         "errorDetails": "",
                     },

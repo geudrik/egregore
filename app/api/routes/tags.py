@@ -26,15 +26,7 @@ async def list_all_tags(
 ) -> PaginatedTagList:
     count, limit, offset, res = await tag_service.list(pagination, filtering, sorting, include_deleted=include_deleted)
     # Convert list of docs into Tag instances for return in our PaginatedTagList model
-    ret = [
-        Tag(
-            **i["_source"],
-            id=i["_id"],
-            sequence=DocumentSequence(seq_no=i["_seq_no"], primary_term=i["_primary_term"]),
-            version=i["_version"],
-        )
-        for i in res
-    ]
+    ret = [Tag(i) for i in res]
 
     return PaginatedTagList(limit=limit, offset=offset, total=count, items=ret)
 
@@ -47,12 +39,7 @@ async def get_a_tag_by_id(
 ) -> Tag:
     """Retrieve a single Tag by its' ID"""
     doc = await tag_service.get(tag_id, allow_deleted=include_deleted)
-    return Tag(
-        **doc["_source"],
-        id=doc["_id"],
-        sequence=DocumentSequence(seq_no=doc["_seq_no"], primary_term=doc["_primary_term"]),
-        version=doc["_version"],
-    )
+    return Tag(doc)
 
 
 @tags_router.post("/")
@@ -61,7 +48,7 @@ async def create_a_new_tag(
     tag_service: TagService = Depends(get_tag_service),
 ) -> Tag:
     ret = await tag_service.create(new_tag.model_dump())
-    return Tag(**ret["_source"], sequence=DocumentSequence(seq_no=ret["_seq_no"], primary_term=ret["_primary_term"]))
+    return Tag(ret)
 
 
 @tags_router.patch("/{tag_id}")
@@ -74,7 +61,7 @@ async def update_an_existing_tag(
     # We need to use exclude_unset here as all fields are optional. Missing fields otherwise get the default assigned
     #   value from the model, but we wan't _nothing_, since under the hood we're doing a dict merge from existing
     ret = await tag_service.update(tag_id, sequence, payload.model_dump(exclude_unset=True))
-    return Tag(**ret["_source"], sequence=DocumentSequence(seq_no=ret["_seq_no"], primary_term=ret["_primary_term"]))
+    return Tag(ret)
 
 
 @tags_router.delete("/{tag_id}")
@@ -113,11 +100,18 @@ async def add_a_new_reference(
     sequence: DocumentSequence = Depends(get_sequence),
 ) -> Tag:
     ret = await tag_service.create_reference(tag_id, sequence, payload.model_dump())
-    return Tag(**ret["_source"], sequence=DocumentSequence(seq_no=ret["_seq_no"], primary_term=ret["_primary_term"]))
+    return Tag(ret)
 
 
 @tags_router.delete("/{tag_id}/references/{reference_id}")
-async def delete_a_reference(tag_id: UUID, reference_id: str) -> Tag: ...
+async def delete_a_reference(
+    tag_id: UUID,
+    reference_id: str,
+    tag_service: TagService = Depends(get_tag_service),
+    sequence: DocumentSequence = Depends(get_sequence),
+) -> Tag:
+    ret = await tag_service.delete_reference(tag_id, sequence, reference_id)
+    return Tag(ret)
 
 
 @tags_router.put("/{tag_id}/references/{reference_id}")

@@ -165,7 +165,9 @@ class TagService(BaseService):
             raise NotFound("No references found for the supplied Tag")
 
         # Remove the reference by ID
-        tag["references"] = [ref for ref in tag["references"] if ref["id"] != reference_id]
+        new_references = [ref for ref in tag["references"] if ref["id"] != reference_id]
+        if len(new_references) == len(tag["references"]):
+            raise NotFound("No reference found with the supplied ID")
 
         ret = await self._index(doc_id=tag_id, body=tag, sequence=sequence)
 

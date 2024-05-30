@@ -102,6 +102,16 @@ class TagBase(Create):
 
 
 class Tag(TagBase):
+
+    def __init__(self, es_doc: dict):
+        sequence = DocumentSequence(seq_no=es_doc["_seq_no"], primary_term=es_doc["_primary_term"])
+        super().__init__(
+            **es_doc["_source"],
+            sequence=sequence,
+            id=es_doc["_id"],
+            version=es_doc["_version"],
+        )
+
     sequence: DocumentSequence
 
 
