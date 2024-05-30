@@ -8,7 +8,7 @@ from app.env import OPENSEARCH_INDEX_PREFIX
 from app.lib.exceptions import IntegrityError, ServerError, NotFound
 from app.models.pagination import PaginationArgs, FilteringArgs, SortingArgs
 from app.models.sequence import DocumentSequence
-from app.service.decorators import audit
+from app.models.service import ReturnModel
 
 
 class AbstractBaseService(ABC):
@@ -106,7 +106,7 @@ class BaseService(AbstractBaseService):
 
     async def get(
         self, doc_id, sequence: DocumentSequence = None, fields: List[str] = None, allow_deleted: bool = False
-    ) -> dict:
+    ) -> ReturnModel:
         """Get a single doc by ID. If a sequence is supplied, it will be tested to ensure matches the fetched doc
         TODO: If we start using timestamped indexes for things, need to also pass the created date for this so we
             can calculate the index we need to query"""
@@ -131,16 +131,15 @@ class BaseService(AbstractBaseService):
                 "the call again"
             )
 
-        return res
+        return ReturnModel(res)
 
-    @audit
     async def list(
         self,
         pagination: PaginationArgs = PaginationArgs(),
         filtering: FilteringArgs = FilteringArgs(),
         sorting: SortingArgs = SortingArgs(),
         extra_filter: dict | None = None,
-    ) -> (int, int, List[dict]):
+    ) -> ReturnModel:
         """List all docs outlined by the query params passed in"""
 
         body = self.generate_listing_query(pagination, filtering, sorting, extra_filter)
@@ -154,11 +153,8 @@ class BaseService(AbstractBaseService):
         for res in result.get("hits", {}).get("hits", []):
             result_list.append(res)
 
-        audit_args = {
-            "action": "list",
-            "component": "tag",
-            "message": f"Listing all tags | {filtering.model_dump()}",
-        }
-
-        # If we're asking for a paginated result set, return our pagination model with all items
-        return audit_args, (pagination.limit, pagination.offset, result_list)
+        return ReturnModel(
+            result_list,
+            limit=pagination.limit,
+            offset=pagination.offset,
+        )
