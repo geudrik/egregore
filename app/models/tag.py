@@ -1,10 +1,10 @@
 import hashlib
 import json
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, computed_field, Field
 
 from app.lib.constants import TagTypes
 from app.models.fields import (
@@ -18,6 +18,24 @@ from app.models.fields import (
 )
 from app.models.sequence import DocumentSequence
 from app.models.service import ReturnModel
+
+PatternStart = Annotated[
+    Optional[datetime],
+    Field(
+        title="Start Bound",
+        description="An ISO formatted timestamp that acts as the lower bound for the search scope",
+        examples=["2024-05-30T22:06:56.292006"],
+    ),
+]
+
+PatternEnd = Annotated[
+    Optional[datetime],
+    Field(
+        title="End Bound",
+        description="An ISO formatted timestamp that acts as the upper bound for the search scope",
+        examples=["2024-05-30T22:06:56.292006"],
+    ),
+]
 
 
 class Reference(BaseModel):
@@ -53,8 +71,8 @@ class PatternClause(BaseModel):
 class Pattern(BaseModel):
     """Model representing any one pattern of a Tag, Tags have N patterns"""
 
-    start: Optional[datetime] = None
-    stop: Optional[datetime] = None
+    start: PatternStart = None
+    stop: PatternEnd = None
     operator: str
     clauses: List[PatternClause]
 
