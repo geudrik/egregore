@@ -115,7 +115,15 @@ async def delete_a_reference(
 
 
 @tags_router.put("/{tag_id}/references/{reference_id}")
-async def update_a_reference_on_the_supplied_tag(tag_id: UUID, reference_id: str) -> Tag: ...
+async def update_a_reference_on_the_supplied_tag(
+    tag_id: UUID,
+    reference_id: str,
+    payload: Reference,
+    tag_service: TagService = Depends(get_tag_service),
+    sequence: DocumentSequence = Depends(get_sequence),
+) -> Tag:
+    ret = await tag_service.update_reference(tag_id, sequence, reference_id, payload.model_dump())
+    return Tag(ret)
 
 
 @tags_router.post("/{tag_id}/patterns")

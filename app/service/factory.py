@@ -11,7 +11,7 @@ def get_tag_service(request: Request) -> TagService:
     """Dependable to get an instance of the Tag service"""
     if not getattr(request.state, "user", False):
         raise ServerError("User object missing from request")
-    return TagService(request.state.user, client, TagHistoryService(client), AuditService(client))
+    return TagService(request.state.user, client, TagHistoryService(client), AuditService(request.state.user, client))
 
 
 def get_tag_history_service(request: Request) -> TagHistoryService:

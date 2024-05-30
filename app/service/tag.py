@@ -196,6 +196,39 @@ class TagService(BaseService):
 
     @audit
     @add_to_history
+    async def update_reference(
+        self, tag_id: UUID, sequence: DocumentSequence, reference_id: str, payload: dict
+    ) -> tuple:
+        tag = await self._get_tag_for_editing(tag_id, sequence=sequence)
+        tag = tag["_source"]
+
+        if not tag["references"]:
+            raise NotFound("No references found for the supplied Tag")
+
+        # Find the reference by ID
+        for ref in tag["references"]:
+            if ref["id"] == reference_id:
+                ref.update(payload)
+                break
+        else:
+            raise NotFound("No reference found with the supplied ID")
+
+        ret = await self._index(doc_id=tag_id, body=tag, sequence=sequence)
+
+        audit_args = {
+            "action": "update",
+            "component": "tag",
+            "message": f"Tag [{tag_id}] had reference {reference_id} modified by [{self.user.username}]",
+            "tag_id": tag_id,
+            "version": ret["_version"],
+            "subcomponent": "references",
+            "subcomponent_action": "update",
+        }
+
+        return audit_args, ret
+
+    @audit
+    @add_to_history
     async def delete(self, tag_id: UUID, sequence: DocumentSequence) -> (dict, dict):
         logger.info(f"Deleting Tag", tag_id=tag_id)
         tag = await self._get_tag_for_editing(tag_id, sequence=sequence)
