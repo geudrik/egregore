@@ -24,11 +24,10 @@ async def list_all_tags(
     filtering=Depends(FilteringArgs),
     sorting=Depends(SortingArgs),
 ) -> PaginatedTagList:
-    count, limit, offset, res = await tag_service.list(pagination, filtering, sorting, include_deleted=include_deleted)
-    # Convert list of docs into Tag instances for return in our PaginatedTagList model
-    ret = [Tag(i) for i in res]
+    listing = await tag_service.list(pagination, filtering, sorting, include_deleted=include_deleted)
+    ret = [Tag(tag) for tag in listing.data]
 
-    return PaginatedTagList(limit=limit, offset=offset, total=count, items=ret)
+    return PaginatedTagList(limit=listing.limit, offset=listing.offset, total=listing.total, items=ret)
 
 
 @tags_router.get("/{tag_id}")
@@ -38,8 +37,8 @@ async def get_a_tag_by_id(
     include_deleted: bool = False,
 ) -> Tag:
     """Retrieve a single Tag by its' ID"""
-    doc = await tag_service.get(tag_id, allow_deleted=include_deleted)
-    return Tag(doc)
+    tag = await tag_service.get(tag_id, allow_deleted=include_deleted)
+    return Tag(tag)
 
 
 @tags_router.post("/")
@@ -47,8 +46,8 @@ async def create_a_new_tag(
     new_tag: Create,
     tag_service: TagService = Depends(get_tag_service),
 ) -> Tag:
-    ret = await tag_service.create(new_tag.model_dump())
-    return Tag(ret)
+    tag = await tag_service.create(new_tag.model_dump())
+    return Tag(tag)
 
 
 @tags_router.patch("/{tag_id}")
@@ -60,8 +59,8 @@ async def update_an_existing_tag(
 ) -> Tag:
     # We need to use exclude_unset here as all fields are optional. Missing fields otherwise get the default assigned
     #   value from the model, but we wan't _nothing_, since under the hood we're doing a dict merge from existing
-    ret = await tag_service.update(tag_id, sequence, payload.model_dump(exclude_unset=True))
-    return Tag(ret)
+    tag = await tag_service.update(tag_id, sequence, payload.model_dump(exclude_unset=True))
+    return Tag(tag)
 
 
 @tags_router.delete("/{tag_id}")
@@ -99,8 +98,8 @@ async def add_a_new_reference(
     tag_service: TagService = Depends(get_tag_service),
     sequence: DocumentSequence = Depends(get_sequence),
 ) -> Tag:
-    ret = await tag_service.create_reference(tag_id, sequence, payload.model_dump())
-    return Tag(ret)
+    tag = await tag_service.create_reference(tag_id, sequence, payload.model_dump())
+    return Tag(tag)
 
 
 @tags_router.delete("/{tag_id}/references/{reference_id}")
@@ -110,8 +109,8 @@ async def delete_a_reference(
     tag_service: TagService = Depends(get_tag_service),
     sequence: DocumentSequence = Depends(get_sequence),
 ) -> Tag:
-    ret = await tag_service.delete_reference(tag_id, sequence, reference_id)
-    return Tag(ret)
+    tag = await tag_service.delete_reference(tag_id, sequence, reference_id)
+    return Tag(tag)
 
 
 @tags_router.put("/{tag_id}/references/{reference_id}")
@@ -122,17 +121,24 @@ async def update_a_reference_on_the_supplied_tag(
     tag_service: TagService = Depends(get_tag_service),
     sequence: DocumentSequence = Depends(get_sequence),
 ) -> Tag:
-    ret = await tag_service.update_reference(tag_id, sequence, reference_id, payload.model_dump())
-    return Tag(ret)
+    tag = await tag_service.update_reference(tag_id, sequence, reference_id, payload.model_dump())
+    return Tag(tag)
 
 
 @tags_router.post("/{tag_id}/patterns")
-async def add_a_new_pattern(tag_id: UUID, new_pattern: Pattern) -> Tag: ...
+async def add_a_new_pattern(
+    tag_id: UUID,
+    payload: Pattern,
+    tag_service: TagService = Depends(get_tag_service),
+    sequence: DocumentSequence = Depends(get_sequence),
+) -> Tag:
+    tag = await tag_service.create_pattern(tag_id, sequence, payload.model_dump())
+    return Tag(tag)
 
 
-@tags_router.delete("/{tag_id}/references/{pattern_id}")
+@tags_router.delete("/{tag_id}/patterns/{pattern_id}")
 async def delete_a_pattern_from_a_tag(tag_id: UUID, pattern_id: str) -> Tag: ...
 
 
-@tags_router.put("/{tag_id}/references/{pattern_id}")
-async def update_the_supplied_pattern_for_a_tag(tag_id: UUID, pattern_id: str) -> Tag: ...
+@tags_router.put("/{tag_id}/patterns/{pattern_id}")
+async def update_the_supplied_pattern_for_a_tag(tag_id: UUID, pattern_id: str, payload: Pattern) -> Tag: ...
