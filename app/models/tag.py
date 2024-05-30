@@ -17,6 +17,7 @@ from app.models.fields import (
     TagPatternValue,
 )
 from app.models.sequence import DocumentSequence
+from app.models.service import ReturnModel
 
 
 class Reference(BaseModel):
@@ -103,13 +104,16 @@ class TagBase(Create):
 
 class Tag(TagBase):
 
-    def __init__(self, es_doc: dict):
-        sequence = DocumentSequence(seq_no=es_doc["_seq_no"], primary_term=es_doc["_primary_term"])
+    def __init__(self, doc: ReturnModel | dict):
+        if isinstance(doc, ReturnModel):
+            doc = doc.data
+
+        sequence = DocumentSequence(seq_no=doc["_seq_no"], primary_term=doc["_primary_term"])
         super().__init__(
-            **es_doc["_source"],
+            **doc["_source"],
             sequence=sequence,
-            id=es_doc["_id"],
-            version=es_doc["_version"],
+            id=doc["_id"],
+            version=doc["_version"],
         )
 
     sequence: DocumentSequence
