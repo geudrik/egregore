@@ -169,6 +169,7 @@ class TagService(BaseService):
         if len(new_references) == len(tag["references"]):
             raise NotFound("No reference found with the supplied ID")
 
+        tag["references"] = new_references
         ret = await self._index(doc_id=tag_id, body=tag, sequence=sequence)
 
         audit_args = {
