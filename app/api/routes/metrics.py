@@ -1,4 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+
+from app.service.factory import get_tag_service
+from app.service.tag import TagService
 
 metrics_router = APIRouter(prefix="/metrics", tags=["Metrics"])
 
@@ -7,9 +10,23 @@ metrics_router = APIRouter(prefix="/metrics", tags=["Metrics"])
 
 
 @metrics_router.get("/tags")
-async def get_tag_metrics():
+async def get_tag_metrics(tag_service: TagService = Depends(get_tag_service)):
     """Return a dict of metrics around total tags, number recent edits, etc"""
-    ...
+    clauses = await tag_service.count_clauses()
+    patterns = await tag_service.count_patterns()
+    total_tags_including_deleted = await tag_service.count(include_deleted=True)
+    tag_count_excluding_deleted = await tag_service.count()
+    return (
+        clauses
+        | patterns
+        | {
+            "tags": {
+                "count": total_tags_including_deleted,
+                "deleted": total_tags_including_deleted - tag_count_excluding_deleted,
+                "published": "TODO",
+            },
+        }
+    )
 
 
 @metrics_router.get("/audit")

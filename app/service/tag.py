@@ -44,6 +44,67 @@ class TagService(BaseService):
             query = {"query": {"bool": {"must_not": {"exists": {"field": "deleted"}}}}}
         return await super(TagService, self).count(query)
 
+    async def count_patterns(self) -> dict:
+        """Perform a count of all patterns in the Tags index (just sum the total number of patterns across all tags)
+        TODO: This is inefficient. Ensure this is cached
+        """
+        agg = await self.client.search(
+            index=self.index_name_read,
+            body={
+                "_source": False,
+                "size": 0,
+                "query": {"nested": {"path": "patterns", "query": {"match_all": {}}}},
+                "aggregations": {
+                    "nested_patterns_count": {
+                        "nested": {"path": "patterns"},
+                        "aggregations": {"unique_patterns": {"cardinality": {"field": "patterns.deterministic_id"}}},
+                    }
+                },
+            },
+        )
+
+        return {
+            "patterns": {
+                "count": agg.get("aggregations", {}).get("nested_patterns_count", {}).get("doc_count", 0),
+                "unique": agg.get("aggregations", {})
+                .get("nested_patterns_count", {})
+                .get("unique_patterns", {})
+                .get("value", 0),
+            }
+        }
+
+    async def count_clauses(self) -> dict:
+        """
+        TODO: This is inefficient. Ensure this is cached
+        :return:
+        """
+        agg = await self.client.search(
+            index=self.index_name_read,
+            body={
+                "_source": False,
+                "size": 0,
+                "query": {"nested": {"path": "patterns.clauses", "query": {"match_all": {}}}},
+                "aggregations": {
+                    "nested_clauses_count": {
+                        "nested": {"path": "patterns.clauses"},
+                        "aggregations": {
+                            "clauses_count": {"cardinality": {"field": "patterns.clauses.deterministic_id"}}
+                        },
+                    }
+                },
+            },
+        )
+
+        return {
+            "clauses": {
+                "count": agg.get("aggregations", {}).get("nested_clauses_count", {}).get("doc_count", 0),
+                "unique": agg.get("aggregations", {})
+                .get("nested_clauses_count", {})
+                .get("clauses_count", {})
+                .get("value", 0),
+            }
+        }
+
     async def list(
         self,
         pagination: PaginationArgs = PaginationArgs(),
